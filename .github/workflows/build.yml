@@ -2,6 +2,9 @@ name: Build ImmortalWrt XG-040G-MD UBI
 
 on:
   workflow_dispatch:
+  schedule:
+    # Every Sunday at 04:00 Beijing/Hong Kong time (Saturday 20:00 UTC)
+    - cron: "0 20 * * 6"
   push:
     branches: [main]
     paths:
@@ -10,7 +13,7 @@ on:
       - "scripts/**"
 
 permissions:
-  contents: read
+  contents: write
 
 concurrency:
   group: immortalwrt-xg040g-md-ubi
@@ -46,7 +49,7 @@ jobs:
             rsync swig unzip zlib1g-dev file wget curl libelf-dev \
             qemu-utils ccache xsltproc
 
-      - name: Clone ImmortalWrt
+      - name: Clone latest ImmortalWrt
         run: |
           git clone --depth=1 --branch "$SOURCE_BRANCH" "$SOURCE_REPO" openwrt
           cd openwrt
@@ -113,13 +116,64 @@ jobs:
             exit 1
           fi
 
-          (cd output && sha256sum * > SHA256SUMS)
+          if ! compgen -G "output/*recovery.itb" > /dev/null; then
+            echo "Expected XG-040G-MD UBI recovery image was not produced."
+            exit 1
+          fi
+
+          (cd output && sha256sum *.itb > SHA256SUMS)
           ls -lh output
 
-      - name: Upload firmware artifact
+      - name: Prepare release metadata
+        id: release
+        shell: bash
+        run: |
+          BUILD_DATE="$(TZ=Asia/Shanghai date +'%Y.%m.%d-%H%M')"
+          SOURCE_SHA="$(git -C openwrt rev-parse --short=12 HEAD)"
+          TAG="immortalwrt-${BUILD_DATE}-r${GITHUB_RUN_NUMBER}"
+          RELEASE_NAME="ImmortalWrt XG-040G-MD UBI ${BUILD_DATE}"
+
+          echo "tag=$TAG" >> "$GITHUB_OUTPUT"
+          echo "name=$RELEASE_NAME" >> "$GITHUB_OUTPUT"
+          echo "source_sha=$SOURCE_SHA" >> "$GITHUB_OUTPUT"
+
+      - name: Upload Actions artifact
         uses: actions/upload-artifact@v4
         with:
           name: ImmortalWrt-XG-040G-MD-UBI
           path: output/
           if-no-files-found: error
           retention-days: 14
+
+      - name: Publish GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_TAG: ${{ steps.release.outputs.tag }}
+          RELEASE_NAME: ${{ steps.release.outputs.name }}
+          SOURCE_SHA: ${{ steps.release.outputs.source_sha }}
+        run: |
+          cat > release-notes.md <<EOF
+          ## Nokia XG-040G-MD (all-in-UBI)
+
+          Automated ImmortalWrt build for Nokia XG-040G-MD / Airoha AN7581.
+
+          - Device profile: \`nokia_xg-040g-md-ubi\`
+          - Source branch: \`${SOURCE_BRANCH}\`
+          - ImmortalWrt source commit: \`${SOURCE_SHA}\`
+          - GitHub Actions run: \`${GITHUB_RUN_NUMBER}\`
+
+          ### Files
+
+          - \`*-squashfs-sysupgrade.itb\` — normal firmware upgrade after MedveFlasher/all-in-UBI migration
+          - \`*-initramfs-recovery.itb\` — RAM/TFTP recovery image
+          - \`SHA256SUMS\` — checksums
+
+          > Do not flash these images directly onto stock Nokia firmware or the legacy non-UBI/tcboot layout.
+          EOF
+
+          gh release create "$RELEASE_TAG" output/* \
+            --repo "$GITHUB_REPOSITORY" \
+            --target "$GITHUB_SHA" \
+            --title "$RELEASE_NAME" \
+            --notes-file release-notes.md \
+            --latest
