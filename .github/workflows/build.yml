@@ -107,7 +107,7 @@ jobs:
             CONFIG_PACKAGE_luci-app-lucky=y
             CONFIG_PACKAGE_luci-app-gecoosac=y
             CONFIG_PACKAGE_luci-app-samba4=y
-            CONFIG_PACKAGE_luci-app-wolplus=y
+            CONFIG_PACKAGE_luci-app-wolultra=y
             CONFIG_PACKAGE_luci-app-airoha-npu=y
             CONFIG_PACKAGE_airoha-en7581-npu-firmware=y
             CONFIG_PACKAGE_fitblk=y
@@ -283,7 +283,7 @@ jobs:
             luci-app-lucky
             luci-app-gecoosac
             luci-app-samba4
-            luci-app-wolplus
+            luci-app-wolultra
             luci-app-airoha-npu
             airoha-en7581-npu-firmware
             fitblk
@@ -361,7 +361,7 @@ jobs:
           - ImmortalWrt source commit: \`${SOURCE_SHA}\`
           - GitHub Actions run: \`${GITHUB_RUN_NUMBER}\`
           - Runtime package baseline: Bingoguo GENERAL package set
-          - Critical third-party packages: OpenClash, Lucky, GecoosAC, wolplus, Airoha NPU LuCI
+          - Critical third-party packages: OpenClash, Lucky, GecoosAC, WOL Ultra, Airoha NPU LuCI
           - Safety gates: exact UBI Kconfig profile + sysupgrade metadata + profiles.json + final rootfs manifest
 
           ### Files
