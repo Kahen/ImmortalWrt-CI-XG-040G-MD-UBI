@@ -26,6 +26,7 @@ jobs:
       SOURCE_BRANCH: master
       DEVICE_PATTERN: nokia_xg-040g-md-ubi
       TARGET_DIR: bin/targets/airoha/an7581
+      DEVICE_CONFIG: CONFIG_TARGET_airoha_an7581_DEVICE_nokia_xg-040g-md-ubi=y
 
     steps:
       - name: Checkout CI repository
@@ -62,12 +63,25 @@ jobs:
         run: |
           bash ../scripts/customize.sh
 
-      - name: Apply firmware configuration
+      - name: Apply and validate firmware configuration
         working-directory: openwrt
         run: |
           cp ../config/xg040g-md-ubi.config .config
           make defconfig
-          grep -E '^CONFIG_TARGET_(airoha|DEVICE_airoha_an7581_DEVICE_nokia_xg-040g-md-ubi)' .config
+
+          echo "Selected target settings:"
+          grep -E '^CONFIG_TARGET_airoha|^CONFIG_TARGET_airoha_an7581' .config || true
+
+          if ! grep -Fxq "$DEVICE_CONFIG" .config; then
+            echo "ERROR: expected device profile was not selected after make defconfig:"
+            echo "  $DEVICE_CONFIG"
+            echo
+            echo "Available/selected AN7581 device settings:"
+            grep -E '^CONFIG_TARGET_airoha_an7581_DEVICE_' .config || true
+            exit 1
+          fi
+
+          echo "Confirmed device profile: $DEVICE_PATTERN"
 
       - name: Download sources
         working-directory: openwrt
@@ -80,17 +94,25 @@ jobs:
         run: |
           make -j"$(nproc)" V=s
 
-      - name: Collect UBI sysupgrade image
+      - name: Collect firmware and recovery images
         run: |
           mkdir -p output
+
           find "openwrt/$TARGET_DIR" -maxdepth 1 -type f \
             -name "*${DEVICE_PATTERN}*sysupgrade.itb" \
             -exec cp -v {} output/ \;
+
+          find "openwrt/$TARGET_DIR" -maxdepth 1 -type f \
+            -name "*${DEVICE_PATTERN}*recovery.itb" \
+            -exec cp -v {} output/ \;
+
           if ! compgen -G "output/*sysupgrade.itb" > /dev/null; then
             echo "Expected XG-040G-MD UBI sysupgrade image was not produced."
+            echo "Files produced for airoha/an7581:"
             find "openwrt/$TARGET_DIR" -maxdepth 1 -type f -printf '%f\n' | sort
             exit 1
           fi
+
           (cd output && sha256sum * > SHA256SUMS)
           ls -lh output
 
