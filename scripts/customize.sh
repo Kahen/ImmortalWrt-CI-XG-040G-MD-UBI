@@ -41,9 +41,11 @@ import_openclash() {
 }
 
 import_viking_packages() {
-  # Bingoguo uses this repository for GecoosAC and wolplus.
+  # Bingoguo/VIKINGYFY packages provide GecoosAC and the WOL LuCI app.
+  # The WOL package was renamed from luci-app-wolplus to luci-app-wolultra.
   remove_matches "gecoosac"
   remove_matches "luci-app-wolplus"
+  remove_matches "luci-app-wolultra"
   remove_matches "luci-app-timewol"
   rm -rf ./package/viking-packages
 
