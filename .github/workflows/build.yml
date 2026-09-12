@@ -69,7 +69,7 @@ jobs:
       - name: Apply and validate firmware configuration
         working-directory: openwrt
         run: |
-          cp ../config/xg040g-md-ubi.config .config
+          cat ../config/xg040g-md-ubi.config ../config/general-packages.config > .config
           make defconfig
 
           echo "Selected target settings:"
@@ -85,6 +85,36 @@ jobs:
           fi
 
           echo "Confirmed device profile: $DEVICE_PATTERN"
+
+          echo "Validating every GENERAL runtime package requested with =y..."
+          missing=0
+          while IFS= read -r line; do
+            case "$line" in
+              CONFIG_PACKAGE_*=y)
+                if ! grep -Fxq "$line" .config; then
+                  echo "MISSING after make defconfig: $line"
+                  missing=1
+                fi
+                ;;
+            esac
+          done < ../config/general-packages.config
+
+          # OpenClash declares these as direct runtime dependencies. Validate them
+          # explicitly so a build can never be published with OpenClash selected
+          # but an unresolved critical dependency.
+          for pkg in dnsmasq-full bash curl ca-bundle ip-full ruby ruby-yaml kmod-tun unzip; do
+            if ! grep -Fxq "CONFIG_PACKAGE_${pkg}=y" .config; then
+              echo "MISSING OpenClash dependency after make defconfig: CONFIG_PACKAGE_${pkg}=y"
+              missing=1
+            fi
+          done
+
+          if [ "$missing" -ne 0 ]; then
+            echo "ERROR: required GENERAL/OpenClash package set is incomplete."
+            exit 1
+          fi
+
+          echo "GENERAL package set and OpenClash dependencies validated."
 
       - name: Download sources
         working-directory: openwrt
@@ -161,6 +191,8 @@ jobs:
           - Source branch: \`${SOURCE_BRANCH}\`
           - ImmortalWrt source commit: \`${SOURCE_SHA}\`
           - GitHub Actions run: \`${GITHUB_RUN_NUMBER}\`
+          - Runtime package baseline: Bingoguo GENERAL package set
+          - Critical third-party packages: OpenClash, Lucky, GecoosAC, wolplus, Airoha NPU LuCI
 
           ### Files
 
