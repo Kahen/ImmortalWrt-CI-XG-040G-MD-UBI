@@ -1,0 +1,4 @@
+openwrt/
+output/
+*.log
+.DS_Store
