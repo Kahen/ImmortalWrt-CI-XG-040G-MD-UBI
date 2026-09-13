@@ -107,6 +107,14 @@ jobs:
           # These are intentional user-facing/runtime requirements. If one of these
           # disappears, failing is preferable to silently publishing a degraded image.
           critical_configs=(
+            CONFIG_PACKAGE_luci=y
+            CONFIG_PACKAGE_luci-light=y
+            CONFIG_PACKAGE_luci-mod-admin-full=y
+            CONFIG_PACKAGE_luci-mod-network=y
+            CONFIG_PACKAGE_luci-mod-system=y
+            CONFIG_PACKAGE_luci-mod-status=y
+            CONFIG_PACKAGE_luci-app-firewall=y
+            CONFIG_PACKAGE_luci-app-package-manager=y
             CONFIG_PACKAGE_luci-app-openclash=y
             CONFIG_PACKAGE_luci-app-lucky=y
             CONFIG_PACKAGE_luci-theme-footstrap=y
@@ -291,6 +299,14 @@ jobs:
           # non-critical GENERAL symbols that master may rename.
           awk -F ' - ' '{print $1}' "$MANIFEST" > output/package-names.txt
           critical_packages=(
+            luci
+            luci-light
+            luci-mod-admin-full
+            luci-mod-network
+            luci-mod-system
+            luci-mod-status
+            luci-app-firewall
+            luci-app-package-manager
             luci-app-openclash
             luci-app-lucky
             luci-theme-footstrap
