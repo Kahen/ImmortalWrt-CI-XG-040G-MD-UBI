@@ -115,6 +115,11 @@ jobs:
             CONFIG_PACKAGE_luci-mod-status=y
             CONFIG_PACKAGE_luci-app-firewall=y
             CONFIG_PACKAGE_luci-app-package-manager=y
+            CONFIG_PACKAGE_luci-ssl=y
+            CONFIG_PACKAGE_luci-app-attendedsysupgrade=y
+            CONFIG_PACKAGE_amneziawg-tools=y
+            CONFIG_PACKAGE_kmod-amneziawg=y
+            CONFIG_PACKAGE_kmod-tun=y
             CONFIG_PACKAGE_luci-app-openclash=y
             CONFIG_PACKAGE_luci-app-lucky=y
             CONFIG_PACKAGE_luci-theme-footstrap=y
@@ -307,6 +312,11 @@ jobs:
             luci-mod-status
             luci-app-firewall
             luci-app-package-manager
+            luci-ssl
+            luci-app-attendedsysupgrade
+            amneziawg-tools
+            kmod-amneziawg
+            kmod-tun
             luci-app-openclash
             luci-app-lucky
             luci-theme-footstrap
