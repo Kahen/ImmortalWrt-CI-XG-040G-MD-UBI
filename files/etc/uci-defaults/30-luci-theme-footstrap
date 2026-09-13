@@ -1,0 +1,11 @@
+#!/bin/sh
+
+# Footstrap is the only LuCI theme shipped by this image.  The package's
+# post-install hook is skipped while assembling a root filesystem, so set the
+# initial media path on first boot rather than leaving LuCI pointed at the
+# absent Bootstrap theme.
+uci -q set luci.main.mediaurlbase='/luci-static/footstrap'
+uci -q set luci.themes.Footstrap='/luci-static/footstrap'
+uci -q commit luci
+
+exit 0
