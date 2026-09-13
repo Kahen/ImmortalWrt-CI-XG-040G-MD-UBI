@@ -21,6 +21,25 @@ clone_direct() {
     "https://github.com/${repo}.git" "./package/${target}"
 }
 
+import_footstrap() {
+  local tmp
+  tmp="$(mktemp -d)"
+  remove_matches "footstrap"
+
+  # The upstream repository contains the OpenWrt package one directory below
+  # its root, so it cannot be imported with clone_direct().
+  git clone --depth=1 --single-branch --branch main \
+    https://github.com/VizzleTF/luci-theme-footstrap.git "$tmp/footstrap"
+
+  if [ ! -f "$tmp/footstrap/luci-theme-footstrap/Makefile" ]; then
+    echo "ERROR: luci-theme-footstrap Makefile not found"
+    exit 1
+  fi
+
+  cp -a "$tmp/footstrap/luci-theme-footstrap" ./package/luci-theme-footstrap
+  rm -rf "$tmp"
+}
+
 import_openclash() {
   local tmp
   tmp="$(mktemp -d)"
@@ -59,6 +78,7 @@ import_openclash
 clone_direct "luci-app-lucky" "sirpdboy/luci-app-lucky" "main"
 import_viking_packages
 clone_direct "luci-app-airoha-npu" "bingoguo93/luci-app-airoha-npu" "main"
+import_footstrap
 
 # Force package metadata to be regenerated after adding/removing package trees.
 rm -rf ./tmp

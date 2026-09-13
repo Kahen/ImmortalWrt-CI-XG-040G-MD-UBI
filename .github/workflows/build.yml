@@ -49,8 +49,12 @@ jobs:
             rsync swig unzip zlib1g-dev file wget curl libelf-dev \
             qemu-utils ccache xsltproc
 
-      - name: Clone latest ImmortalWrt
+      - name: Clone ImmortalWrt source
         run: |
+          # MedveFlasher's exact production snapshot is an operator-supplied
+          # binary and its source commit is not fetchable from the public
+          # ImmortalWrt repository. Build the public source normally, while
+          # retaining the exact MedveFlasher-compatible UBI profile below.
           git clone --depth=1 --branch "$SOURCE_BRANCH" "$SOURCE_REPO" openwrt
           cd openwrt
           git log -1 --oneline
@@ -105,6 +109,10 @@ jobs:
           critical_configs=(
             CONFIG_PACKAGE_luci-app-openclash=y
             CONFIG_PACKAGE_luci-app-lucky=y
+            CONFIG_PACKAGE_luci-theme-footstrap=y
+            CONFIG_PACKAGE_luci-i18n-base-zh-cn=y
+            CONFIG_PACKAGE_luci-i18n-lucky-zh-cn=y
+            CONFIG_PACKAGE_luci-i18n-upnp-zh-cn=y
             CONFIG_PACKAGE_luci-app-gecoosac=y
             CONFIG_PACKAGE_luci-app-samba4=y
             CONFIG_PACKAGE_luci-app-wolultra=y
@@ -281,6 +289,10 @@ jobs:
           critical_packages=(
             luci-app-openclash
             luci-app-lucky
+            luci-theme-footstrap
+            luci-i18n-base-zh-cn
+            luci-i18n-lucky-zh-cn
+            luci-i18n-upnp-zh-cn
             luci-app-gecoosac
             luci-app-samba4
             luci-app-wolultra
@@ -357,11 +369,11 @@ jobs:
           Automated ImmortalWrt build for Nokia XG-040G-MD / Airoha AN7581.
 
           - Device profile: \`nokia_xg-040g-md-ubi\`
-          - Source branch: \`${SOURCE_BRANCH}\`
+          - MedveFlasher compatibility: all-in-UBI profile and normal sysupgrade path
           - ImmortalWrt source commit: \`${SOURCE_SHA}\`
           - GitHub Actions run: \`${GITHUB_RUN_NUMBER}\`
           - Runtime package baseline: Bingoguo GENERAL package set
-          - Critical third-party packages: OpenClash, Lucky, GecoosAC, WOL Ultra, Airoha NPU LuCI
+          - Critical packages: Footstrap, Simplified Chinese LuCI, OpenClash, Lucky, UPnP, GecoosAC, WOL Ultra, Airoha NPU LuCI
           - Safety gates: exact UBI Kconfig profile + sysupgrade metadata + profiles.json + final rootfs manifest
 
           ### Files
